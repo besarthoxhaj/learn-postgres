@@ -48,6 +48,7 @@ CREATE TABLE three
 ```
 # create a table named 'three' and populate with data from
 # table 'one' and 'two'
+BEGIN;
 CREATE TABLE three
   AS (SELECT
     one.id,
@@ -56,5 +57,39 @@ CREATE TABLE three
     row_to_json((SELECT s FROM (SELECT type, address) s))::text AS sender
       FROM one, two
       WHERE one.id = two.id);
+DROP TABLE one;
+ALTER TABLE three RENAME one;
+COMMIT;
+```
+
+**What happens if both tables have an `address` column?**
+
+
+```
+'use strict';
+
+exports.up = (knex, Promise) => {
+
+  return knex.schema
+  .raw(`
+    BEGIN;
+    CREATE TABLE new_split
+      AS (SELECT
+        split.id,
+        split.bet_part,
+        split.sender_id,
+        split.recipient_id,
+        row_to_json(
+          (SELECT s FROM (SELECT first_name, last_name) s)
+        )::text AS sender
+          FROM split, "user"
+          WHERE split.sender_id = "user"."id");
+    DROP TABLE split;
+    ALTER TABLE new_split RENAME TO split;
+    COMMIT;
+  `);
+};
+
+exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
 ```
 

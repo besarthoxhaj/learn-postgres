@@ -3,7 +3,7 @@ module.exports = {
     client: 'pg',
     debug: process.env.PG_DEBUG || false,
     connection: {
-      database: 'knex',
+      database: 'knex_test',
     },
     migrations: {
       directory: './test/migrations',
