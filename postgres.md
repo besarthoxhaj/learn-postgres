@@ -8,7 +8,6 @@ PSQL commands
 \timing [on/off] - toggles display of how long each SQL command takens
 \pset - set the border
 
-
 # SQL Queries
 
 Add semicolon at the end of the query.
@@ -90,13 +89,11 @@ Can also define intermediate 'SAVEPOINTS name' and use ROLLBACK TO.
 
 The changes between the savepoint and the rollback command are not saved.
 
-
 ## Window
 
 Perform aggregate calculations for groups of rows and output all the rows with an additional column containing the result of the aggregate calculation
 
 e.g.
-
 
 ## Unique constraints
 
@@ -121,11 +118,10 @@ Not recommended
 
 ## Partitioning 
 
-
 ## Where
 
 ```
-  SELECT * FROM "user" WHERE "id" = '0c9b6bae-4961-4675-a74e-d0bc204fcf21';
+SELECT * FROM "user" WHERE "id" = '0c9b6bae-4961-4675-a74e-d0bc204fcf21';
 ```
 
 http://www.postgresql.org/docs/9.4/static/sql-syntax-lexical.html
