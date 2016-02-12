@@ -65,31 +65,110 @@ COMMIT;
 **What happens if both tables have an `address` column?**
 
 
-```
+```js
+// 20160212100156_split.js
 'use strict';
-
-exports.up = (knex, Promise) => {
-
-  return knex.schema
-  .raw(`
-    BEGIN;
-    CREATE TABLE new_split
-      AS (SELECT
-        split.id,
-        split.bet_part,
-        split.sender_id,
-        split.recipient_id,
-        row_to_json(
-          (SELECT s FROM (SELECT first_name, last_name) s)
-        )::text AS sender
-          FROM split, "user"
-          WHERE split.sender_id = "user"."id");
-    DROP TABLE split;
-    ALTER TABLE new_split RENAME TO split;
-    COMMIT;
-  `);
-};
-
+exports.up = (knex, Promise) => knex.schema.raw(`
+  BEGIN;
+  CREATE TABLE new_split
+    AS (SELECT
+      split.id,
+      split.bet_part,
+      split.sender_id,
+      split.recipient_id,
+      row_to_json(
+        (SELECT s FROM (SELECT first_name, last_name) s)
+      )::jsonb AS sender
+        FROM split, "user"
+        WHERE split.sender_id = "user"."id");
+  DROP TABLE split;
+  ALTER TABLE new_split RENAME TO split;
+  COMMIT;
+`);
 exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
 ```
 
+
+In this way however we lost the metadata about modifiers and constraints.
+
+**Example**
+
+```js
+// 20160212113212_split.js
+'use strict';
+exports.up = (knex, Promise) => knex.schema.table('split', table => {
+  table.timestamp('created_at');
+  table.text('status');
+});
+exports.down = (knex, Promise) => {};
+```
+
+
+The schema of our table looks something like this:
+
+```
+...insert table schema
+```
+
+**Add constraints CHECK**
+
+```js
+// 20160212121443_split.js
+'use strict';
+exports.up = (knex, Promise) => knex.schema.raw(`
+  BEGIN;
+  ALTER TABLE split ALTER COLUMN created_at SET NOT NULL;
+  ALTER TABLE split ALTER COLUMN status SET NOT NULL;
+  COMMIT;
+`);
+exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
+
+```
+
+```js
+// 20160212121805_split.js
+'use strict';
+exports.up = (knex, Promise) => knex.schema.raw(`
+  BEGIN;
+  ALTER TABLE split ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+  ALTER TABLE split ADD CONSTRAINT "split_status_check"
+    CHECK (status = ANY (ARRAY['accepted'::text, 'pending'::text, 'rejected'::text]));
+  COMMIT;
+`);
+exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
+```
+
+**Add constraints FOREIGN KEY**
+
+```js
+// 20160212124604_split.js
+'use strict';
+exports.up = (knex, Promise) => knex.schema.raw(`
+  BEGIN;
+  ALTER TABLE split ALTER COLUMN status SET DEFAULT 'pending';
+  ALTER TABLE split
+    ADD CONSTRAINT "split_sender_id_foreign" FOREIGN KEY (sender_id)
+      REFERENCES "user"(id)
+      ON UPDATE CASCADE ON DELETE CASCADE;
+  ALTER TABLE split
+    ADD CONSTRAINT "split_recipient_id_foreign" FOREIGN KEY (recipient_id)
+      REFERENCES "user"(id)
+      ON UPDATE CASCADE ON DELETE CASCADE;
+  COMMIT;
+`);
+exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
+```
+
+**Add index**
+```js
+// 20160212131135_split.js
+'use strict';
+exports.up = (knex, Promise) => knex.schema.raw(`
+  BEGIN;
+    ALTER TABLE split ADD COLUMN id SERIAL;
+      UPDATE split SET id = DEFAULT;
+      ALTER TABLE split ADD PRIMARY KEY (id);
+  COMMIT;
+`);
+exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
+```

@@ -1,7 +1,7 @@
 module.exports = {
   test: {
     client: 'pg',
-    debug: process.env.PG_DEBUG || false,
+    debug: process.env.PG_DEBUG || true,
     connection: {
       database: 'knex_test',
     },
