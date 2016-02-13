@@ -113,19 +113,6 @@ The schema of our table looks something like this:
 **Add constraints CHECK**
 
 ```js
-// 20160212121443_split.js
-'use strict';
-exports.up = (knex, Promise) => knex.schema.raw(`
-  BEGIN;
-  ALTER TABLE split ALTER COLUMN created_at SET NOT NULL;
-  ALTER TABLE split ALTER COLUMN status SET NOT NULL;
-  COMMIT;
-`);
-exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
-
-```
-
-```js
 // 20160212121805_split.js
 'use strict';
 exports.up = (knex, Promise) => knex.schema.raw(`
@@ -133,6 +120,7 @@ exports.up = (knex, Promise) => knex.schema.raw(`
   ALTER TABLE split ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
   ALTER TABLE split ADD CONSTRAINT "split_status_check"
     CHECK (status = ANY (ARRAY['accepted'::text, 'pending'::text, 'rejected'::text]));
+  ALTER TABLE split ALTER COLUMN status SET DEFAULT 'pending';
   COMMIT;
 `);
 exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
@@ -145,7 +133,6 @@ exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
 'use strict';
 exports.up = (knex, Promise) => knex.schema.raw(`
   BEGIN;
-  ALTER TABLE split ALTER COLUMN status SET DEFAULT 'pending';
   ALTER TABLE split
     ADD CONSTRAINT "split_sender_id_foreign" FOREIGN KEY (sender_id)
       REFERENCES "user"(id)
@@ -160,15 +147,23 @@ exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
 ```
 
 **Add index**
+From [stackoverflow](http://stackoverflow.com/questions/9490014/adding-serial-to-existing-column-in-postgres) and [this blog](https://maksudcse.wordpress.com/2011/03/16/postgresql-add-primary-key-to-an-existing-table/)
 ```js
 // 20160212131135_split.js
 'use strict';
 exports.up = (knex, Promise) => knex.schema.raw(`
   BEGIN;
-    ALTER TABLE split ADD COLUMN id SERIAL;
-      UPDATE split SET id = DEFAULT;
-      ALTER TABLE split ADD PRIMARY KEY (id);
+    CREATE SEQUENCE split_id_seq;
+    ALTER TABLE split ALTER COLUMN id SET DEFAULT nextval('split_id_seq');
+    ALTER TABLE split ALTER COLUMN id SET NOT NULL;
+    ALTER SEQUENCE split_id_seq OWNED BY split.id;
+    SELECT setval('split_id_seq', (SELECT MAX(id) FROM split));
   COMMIT;
 `);
 exports.down = (knex, Promise) => knex.schema.raw(`ROLLBACK;`);
+```
+
+Test it with
+```
+INSERT INTO split (bet_part, sender_id, recipient_id, sender) VALUES ('{"name":"bet-21678"}', 1, 2, '{"last_name": "Bar-534029", "first_name": "Foo-534029"}');
 ```

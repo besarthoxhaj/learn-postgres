@@ -5,6 +5,7 @@ exports.up = (knex, Promise) => knex.schema.raw(`
   ALTER TABLE split ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
   ALTER TABLE split ADD CONSTRAINT "split_status_check"
     CHECK (status = ANY (ARRAY['accepted'::text, 'pending'::text, 'rejected'::text]));
+  ALTER TABLE split ALTER COLUMN status SET DEFAULT 'pending';
   COMMIT;
 `);
 

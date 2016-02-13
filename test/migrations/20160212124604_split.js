@@ -2,7 +2,6 @@
 
 exports.up = (knex, Promise) => knex.schema.raw(`
   BEGIN;
-  ALTER TABLE split ALTER COLUMN status SET DEFAULT 'pending';
   ALTER TABLE split
     ADD CONSTRAINT "split_sender_id_foreign" FOREIGN KEY (sender_id)
       REFERENCES "user"(id)
