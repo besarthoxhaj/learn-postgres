@@ -24,3 +24,6 @@ https://www.compose.io/articles/is-postgresql-your-next-json-database/
 
 
 http://dba.stackexchange.com/questions/52517/best-way-to-populate-a-new-column-in-a-large-table
+
+On batch updated
+http://tapoueh.org/blog/2013/03/15-batch-update
