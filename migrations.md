@@ -170,17 +170,18 @@ INSERT INTO split (bet_part, sender_id, recipient_id, sender) VALUES ('{"name":"
 
 **Default to json object**
 
+Example of default JSONB filed.
 
 ```js
 // 20160212131136_user.js
 'use strict';
 exports.up = (knex,Promise) => {
   return knex.schema.table('user', table => {
-    table.jsonb('tool_tips').notNullable().defaultTo({
+    table.jsonb('tool_tips').notNullable().defaultTo(JSON.stringify({
       show_start_deck:true,
       show_split_deck:true,
       show_split_overlay:true
-    });
+    }));
   });
 };
 

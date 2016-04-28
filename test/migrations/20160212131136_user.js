@@ -2,11 +2,11 @@
 
 exports.up = (knex,Promise) => {
   return knex.schema.table('user', table => {
-    table.jsonb('tool_tips').notNullable().defaultTo({
+    table.jsonb('tool_tips').notNullable().defaultTo(JSON.stringify({
       show_start_deck:true,
       show_split_deck:true,
       show_split_overlay:true
-    });
+    }));
   });
 };
 
