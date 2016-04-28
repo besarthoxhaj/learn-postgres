@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "pg": "^4.4.3",
-    "knex": "^0.9.0"
+    "knex": "^0.10.0"
   },
   "devDependencies": {},
   "scripts": {
