@@ -167,3 +167,26 @@ Test it with
 ```
 INSERT INTO split (bet_part, sender_id, recipient_id, sender) VALUES ('{"name":"bet-21678"}', 1, 2, '{"last_name": "Bar-534029", "first_name": "Foo-534029"}');
 ```
+
+**Default to json object**
+
+
+```js
+// 20160212131136_user.js
+'use strict';
+exports.up = (knex,Promise) => {
+  return knex.schema.table('user', table => {
+    table.jsonb('tool_tips').notNullable().defaultTo({
+      show_start_deck:true,
+      show_split_deck:true,
+      show_split_overlay:true
+    });
+  });
+};
+
+exports.down = (knex,Promise) => {
+  return knex.schema.table('user', table => {
+    table.dropColumn('tool_tips');
+  });
+};
+```
